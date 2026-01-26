@@ -1,0 +1,42 @@
+import { create } from "zustand";
+
+export type CategoryId = "heme" | "non-heme" | "enhancers" | "inhibitors";
+
+export type Selection = {
+  categoryId: CategoryId;
+  itemId: string; // ej: "beef"
+};
+
+type WheelState = {
+  // Categorías disponibles (se van quitando)
+  remaining: CategoryId[];
+
+  // Selección final: una por cada categoría
+  selections: Partial<Record<CategoryId, string>>;
+
+  // Acción: guardar selección y quitar categoría
+  saveSelection: (categoryId: CategoryId, itemId: string) => void;
+
+  // Acción: reiniciar todo
+  reset: () => void;
+};
+
+const initialRemaining: CategoryId[] = ["heme", "non-heme", "enhancers", "inhibitors"];
+
+export const useWheelStore = create<WheelState>((set) => ({
+  remaining: initialRemaining,
+  selections: {},
+
+  saveSelection: (categoryId, itemId) =>
+    set((state) => {
+      // Guarda selección
+      const nextSelections = { ...state.selections, [categoryId]: itemId };
+
+      // Quita la categoría ya completada
+      const nextRemaining = state.remaining.filter((c) => c !== categoryId);
+
+      return { selections: nextSelections, remaining: nextRemaining };
+    }),
+
+  reset: () => set({ remaining: initialRemaining, selections: {} }),
+}));
