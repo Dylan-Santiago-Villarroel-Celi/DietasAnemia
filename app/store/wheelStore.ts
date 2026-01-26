@@ -14,8 +14,14 @@ type WheelState = {
   // Selección final: una por cada categoría
   selections: Partial<Record<CategoryId, string>>;
 
+  // Información del usuario
+  knowsAboutAnemia: boolean | null;
+
   // Acción: guardar selección y quitar categoría
   saveSelection: (categoryId: CategoryId, itemId: string) => void;
+
+  // Acción: guardar si conoce sobre anemia
+  setKnowsAboutAnemia: (knows: boolean) => void;
 
   // Acción: reiniciar todo
   reset: () => void;
@@ -26,6 +32,7 @@ const initialRemaining: CategoryId[] = ["heme", "non-heme", "enhancers", "inhibi
 export const useWheelStore = create<WheelState>((set) => ({
   remaining: initialRemaining,
   selections: {},
+  knowsAboutAnemia: null,
 
   saveSelection: (categoryId, itemId) =>
     set((state) => {
@@ -38,5 +45,8 @@ export const useWheelStore = create<WheelState>((set) => ({
       return { selections: nextSelections, remaining: nextRemaining };
     }),
 
-  reset: () => set({ remaining: initialRemaining, selections: {} }),
+  setKnowsAboutAnemia: (knows: boolean) =>
+    set({ knowsAboutAnemia: knows }),
+
+  reset: () => set({ remaining: initialRemaining, selections: {}, knowsAboutAnemia: null }),
 }));

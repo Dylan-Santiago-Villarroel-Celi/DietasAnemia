@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import { useWheelStore, CategoryId } from "@/store/wheelStore";
 import { CATEGORIES } from "@/data/foods";
 
@@ -14,17 +15,23 @@ export default function CategoryPage() {
   const remaining = useWheelStore((s) => s.remaining);
 
   const categoryId = params.id as CategoryId;
-
   const data = useMemo(() => CATEGORIES[categoryId], [categoryId]);
+
   const [selected, setSelected] = useState<string | null>(null);
 
   if (!data) {
     return (
-      <main className="min-h-screen flex items-center justify-center p-6">
-        <div className="w-full max-w-md space-y-3">
+      <main className="min-h-screen flex items-center justify-center px-6
+        bg-gradient-to-br from-orange-100 via-orange-200 to-amber-200">
+        <div className="w-full max-w-md rounded-3xl bg-white/80 backdrop-blur
+          border shadow-sm p-6 space-y-4 text-center">
           <h1 className="text-xl font-semibold">Categoría no válida</h1>
-          <Link href="/wheel" className="px-4 py-2 rounded-xl border text-sm">
-            Volver a ruleta
+          <Link
+            href="/wheel"
+            className="px-4 py-3 rounded-2xl border text-sm
+            hover:bg-neutral-50 transition"
+          >
+            Volver a la ruleta
           </Link>
         </div>
       </main>
@@ -40,75 +47,109 @@ export default function CategoryPage() {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-6">
-      <div className="w-full max-w-md space-y-4">
-        <h1 className="text-2xl font-semibold">{data.title}</h1>
+    <main
+      className="min-h-screen flex items-center justify-center px-6 py-10
+      bg-gradient-to-br from-orange-100 via-orange-200 to-amber-200"
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md space-y-5"
+      >
+        {/* HEADER */}
+        <div className="space-y-1">
+          <h1 className="text-3xl font-semibold text-neutral-900">
+            {data.title}
+          </h1>
+          <p className="text-sm text-neutral-700 leading-relaxed">
+            {data.intro}
+          </p>
+        </div>
 
         {alreadyDone && (
-          <div className="rounded-xl border bg-neutral-50 p-3 text-sm">
-            Ya completaste esta categoría. Puedes elegir otra en la ruleta.
+          <div className="rounded-2xl border bg-white/70 backdrop-blur
+            p-3 text-sm text-neutral-700">
+            Ya completaste esta categoría.  
+            Puedes volver a la ruleta para continuar.
           </div>
         )}
 
-        <p className="text-sm text-neutral-600">
-          {data.intro ?? "Área de explicación (placeholder). Aquí irá tu texto educativo."}
-        </p>
+        {/* GRID DE OPCIONES */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.15 }}
+          className="grid grid-cols-2 gap-3"
+        >
+          {data.items.map((it, index) => {
+            const isActive = selected === it.id;
 
-        <div className="space-y-2">
-          <p className="text-sm font-medium">Elige un alimento</p>
+            return (
+              <motion.button
+                key={it.id}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 + index * 0.05 }}
+                onClick={() => setSelected(it.id)}
+                disabled={alreadyDone}
+                className={`rounded-2xl border p-3 text-left transition
+                  ${
+                    isActive
+                      ? "border-orange-500 ring-2 ring-orange-300 bg-orange-50"
+                      : "bg-white hover:bg-neutral-50"
+                  }
+                  ${alreadyDone ? "opacity-60 cursor-not-allowed" : ""}
+                `}
+              >
+                {it.image ? (
+                  <img
+                    src={it.image}
+                    alt={it.name}
+                    className="h-28 w-full rounded-xl object-cover mb-2"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="h-28 rounded-xl bg-neutral-100 mb-2" />
+                )}
 
-          <div className="grid grid-cols-2 gap-2">
-            {data.items.map((it) => {
-              const isActive = selected === it.id;
+                <div className="font-medium text-sm text-neutral-900">
+                  {it.name}
+                </div>
+                <div className="text-xs text-neutral-600 leading-snug">
+                  {it.note}
+                </div>
+              </motion.button>
+            );
+          })}
+        </motion.div>
 
-              return (
-                <button
-                  key={it.id}
-                  onClick={() => setSelected(it.id)}
-                  className={`rounded-xl border p-3 text-sm text-left hover:bg-neutral-50 ${
-                    isActive ? "border-black" : ""
-                  }`}
-                  disabled={alreadyDone}
-                >
-                  {it.image ? (
-                    <img
-                      src={it.image}
-                      alt={it.name}
-                      className="h-24 w-full rounded-lg object-cover mb-2 bg-neutral-100"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div className="h-24 rounded-lg bg-neutral-100 mb-2" />
-                  )}
-
-                  <div className="font-medium">{it.name}</div>
-                  <div className="text-xs text-neutral-500">
-                    {it.note ?? "Descripción (placeholder)"}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
+        {/* ACTIONS */}
         <div className="flex gap-3 pt-2">
-          <Link href="/wheel" className="px-4 py-2 rounded-xl border text-sm">
-            Volver a ruleta
+          <Link
+            href="/wheel"
+            className="flex-1 px-4 py-3 rounded-2xl border
+            bg-white/70 backdrop-blur text-sm text-center
+            hover:bg-white transition"
+          >
+            Volver
           </Link>
 
           <button
             onClick={handleSave}
             disabled={alreadyDone || !selected}
-            className={`px-4 py-2 rounded-xl text-sm ${
-              alreadyDone || !selected
-                ? "bg-neutral-200 text-neutral-600"
-                : "bg-black text-white"
-            }`}
+            className={`flex-1 px-4 py-3 rounded-2xl text-sm font-medium
+              transition
+              ${
+                alreadyDone || !selected
+                  ? "bg-neutral-200 text-neutral-600"
+                  : "bg-neutral-900 text-white hover:bg-neutral-800"
+              }`}
           >
             Guardar selección
           </button>
         </div>
-      </div>
+      </motion.div>
     </main>
   );
 }
