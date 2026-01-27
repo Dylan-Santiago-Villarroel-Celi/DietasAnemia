@@ -54,6 +54,16 @@ export default function ResultPage() {
     .replaceAll("—", "-")
     .trim();
 
+  const getFeedPng = async () => {
+    if (!exportRef.current) throw new Error("Export ref no disponible");
+
+    return await toPng(exportRef.current, {
+      cacheBust: true,
+      pixelRatio: 2,
+      backgroundColor: "#FFF7ED",
+    });
+  };
+
   const downloadPng = async () => {
     if (!exportRef.current) return;
 
@@ -68,29 +78,50 @@ export default function ResultPage() {
       setExporting(true);
 
       // PNG FEED (solo receta)
-      const feedPng = await toPng(exportRef.current, {
-        cacheBust: true,
-        pixelRatio: 2,
-        backgroundColor: "#FFF7ED",
-      });
-
-      // PNG STORY
-      setShowStory(true);
-      await new Promise((r) => requestAnimationFrame(r));
-      await new Promise((r) => setTimeout(r, 100));
-
-      if (!storyRef.current) throw new Error("Story ref no disponible");
-
-      const storyPng = await toPng(storyRef.current, {
-        cacheBust: true,
-        pixelRatio: 2,
-        backgroundColor: "#FFF7ED",
-      });
-
+      const feedPng = await getFeedPng();
       download(feedPng, `receta-${safeTitle}-feed.png`);
-      download(storyPng, `receta-${safeTitle}-story.png`);
     } finally {
-      setShowStory(false);
+      setExporting(false);
+    }
+  };
+
+  const shareRecipe = async () => {
+    if (!exportRef.current) return;
+
+    try {
+      setExporting(true);
+
+      const dataUrl = await getFeedPng();
+
+      const res = await fetch(dataUrl);
+      const blob = await res.blob();
+      const file = new File([blob], `receta-${safeTitle}.png`, {
+        type: "image/png",
+      });
+
+      const canShare =
+        typeof navigator !== "undefined" &&
+        // @ts-ignore
+        typeof navigator.canShare === "function" &&
+        // @ts-ignore
+        navigator.canShare({ files: [file] }) &&
+        typeof navigator.share === "function";
+
+      if (canShare) {
+        // @ts-ignore
+        await navigator.share({
+          title: "Mi receta (FerryGood)",
+          text: "Mira mi receta 🍽️",
+          files: [file],
+        });
+      } else {
+        // Fallback: descargar el feed png
+        const a = document.createElement("a");
+        a.href = dataUrl;
+        a.download = `receta-${safeTitle}-feed.png`;
+        a.click();
+      }
+    } finally {
       setExporting(false);
     }
   };
@@ -126,9 +157,12 @@ export default function ResultPage() {
         </div>
 
         {/* BLOQUE EXPORTABLE FEED (solo receta) */}
-        <div ref={exportRef} className="rounded-3xl bg-white/80 backdrop-blur border shadow-sm p-5 space-y-4">
+        <div
+          ref={exportRef}
+          className="rounded-3xl bg-white/80 backdrop-blur border shadow-sm p-5 space-y-4"
+        >
           <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="FerryGood" width={44} height={44} />
+            <img src="/logo.png" alt="FerryGood" width={44} />
             <h2 className="text-lg font-semibold text-neutral-900">
               {recipe.title}
             </h2>
@@ -161,6 +195,26 @@ export default function ResultPage() {
             </ul>
           </div>
 
+          {recipe.warnings.length > 0 && (
+            <div className="rounded-2xl border border-red-200 bg-red-50 p-3">
+              <div className="flex items-start gap-2">
+                <span className="text-red-600 text-lg leading-none">⚠️</span>
+                <div>
+                  <p className="text-sm font-semibold text-red-700">
+                    Advertencia
+                  </p>
+                  <ul className="mt-1 space-y-1 text-sm text-red-700">
+                    {recipe.warnings.map((w, i) => (
+                      <li key={i} className="leading-snug">
+                        {w}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="text-[11px] text-neutral-500">
             Generado por FerryGood • Recetas & hierro para ti
           </div>
@@ -177,16 +231,28 @@ export default function ResultPage() {
                 : "bg-white/80 backdrop-blur border hover:bg-white"
             }`}
           >
-            {exporting ? "Generando..." : "Descargar receta"}
+            {exporting ? "Generando..." : "Descargar"}
           </button>
 
-          <Link
-            href="/wheel"
-            className="flex-1 px-4 py-3 rounded-2xl border bg-white/70 backdrop-blur text-sm text-center"
+          <button
+            onClick={shareRecipe}
+            disabled={!isComplete || exporting}
+            className={`flex-1 px-4 py-3 rounded-2xl text-sm font-medium ${
+              exporting || !isComplete
+                ? "bg-neutral-200 text-neutral-600"
+                : "bg-neutral-900 text-white hover:bg-neutral-800"
+            }`}
           >
-            Volver a la ruleta
-          </Link>
+            {exporting ? "Generando..." : "Compartir"}
+          </button>
         </div>
+
+        <Link
+          href="/wheel"
+          className="block px-4 py-3 rounded-2xl border bg-white/70 backdrop-blur text-sm text-center"
+        >
+          Volver a la ruleta
+        </Link>
       </motion.div>
 
       {/* OVERLAY STORY (visible solo al exportar) */}
@@ -199,15 +265,17 @@ export default function ResultPage() {
           >
             <div className="w-[900px] rounded-3xl bg-white/95 p-10 space-y-6 border">
               <div className="flex items-center gap-4">
-                <img src="/logo.png" alt="FerryGood" width={72} height={72} />
+                <img src="/logo.png" alt="FerryGood" width={72} />
                 <h1 className="text-3xl font-semibold">{recipe.title}</h1>
               </div>
 
               <div>
                 <h2 className="font-semibold">Ingredientes</h2>
-                <ul className="list-disc pl-5 text-base space-y-1">
+                <ul className="text-sm text-neutral-700 space-y-1">
                   {recipe.ingredients.map((x, i) => (
-                    <li key={i}>{x}</li>
+                    <li key={i} className="leading-relaxed">
+                      • {x}
+                    </li>
                   ))}
                 </ul>
               </div>
@@ -229,6 +297,26 @@ export default function ResultPage() {
                   ))}
                 </ul>
               </div>
+
+              {recipe.warnings.length > 0 && (
+                <div className="rounded-2xl border border-red-200 bg-red-50 p-4">
+                  <div className="flex items-start gap-3">
+                    <span className="text-red-600 text-2xl leading-none">⚠️</span>
+                    <div>
+                      <p className="text-base font-semibold text-red-700">
+                        Advertencia
+                      </p>
+                      <ul className="mt-1 space-y-1 text-base text-red-700">
+                        {recipe.warnings.map((w, i) => (
+                          <li key={i} className="leading-snug">
+                            {w}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="text-center text-sm text-neutral-600">
                 FerryGood 💛 Recetas & hierro para ti
