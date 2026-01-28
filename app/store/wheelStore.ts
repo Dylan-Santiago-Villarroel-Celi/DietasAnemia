@@ -16,12 +16,16 @@ type WheelState = {
 
   // Información del usuario
   knowsAboutAnemia: boolean | null;
+  name: string | null;
 
   // Acción: guardar selección y quitar categoría
   saveSelection: (categoryId: CategoryId, itemId: string) => void;
 
   // Acción: guardar si conoce sobre anemia
   setKnowsAboutAnemia: (knows: boolean) => void;
+
+  // Acción: guardar nombre
+  setName: (name: string) => void;
 
   // Acción: reiniciar todo
   reset: () => void;
@@ -33,6 +37,7 @@ export const useWheelStore = create<WheelState>((set) => ({
   remaining: initialRemaining,
   selections: {},
   knowsAboutAnemia: null,
+  name: null,
 
   saveSelection: (categoryId, itemId) =>
     set((state) => {
@@ -48,5 +53,8 @@ export const useWheelStore = create<WheelState>((set) => ({
   setKnowsAboutAnemia: (knows: boolean) =>
     set({ knowsAboutAnemia: knows }),
 
-  reset: () => set({ remaining: initialRemaining, selections: {}, knowsAboutAnemia: null }),
+  setName: (name: string) =>
+    set({ name }),
+
+  reset: () => set({ remaining: initialRemaining, selections: {}, knowsAboutAnemia: null, name: null }),
 }));

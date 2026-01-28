@@ -9,7 +9,9 @@ import { useWheelStore } from "@/store/wheelStore";
 export default function RegisterPage() {
   const [diagnosed, setDiagnosed] = useState<"yes" | "no" | null>(null);
   const [knowsAboutAnemia, setKnowsAboutAnemiaLocal] = useState<"yes" | "no" | null>(null);
+  const [name, setName] = useState("");
   const setKnowsAboutAnemia = useWheelStore((s) => s.setKnowsAboutAnemia);
+  const setNameStore = useWheelStore((s) => s.setName);
 
   return (
     <main
@@ -53,6 +55,8 @@ export default function RegisterPage() {
                 Nombre
               </label>
               <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 className="mt-1 w-full rounded-2xl border border-neutral-300
                 px-4 py-3 text-sm focus:outline-none focus:ring-2
                 focus:ring-orange-300 bg-white"
@@ -158,6 +162,9 @@ export default function RegisterPage() {
               onClick={() => {
                 if (knowsAboutAnemia !== null) {
                   setKnowsAboutAnemia(knowsAboutAnemia === "yes");
+                  if (name.trim()) {
+                    setNameStore(name);
+                  }
                 }
               }}
               type="button"

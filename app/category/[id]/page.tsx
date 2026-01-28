@@ -125,30 +125,33 @@ export default function CategoryPage() {
         </motion.div>
 
         {/* ACTIONS */}
-        <div className="flex gap-3 pt-2">
-          <Link
-            href="/wheel"
-            className="flex-1 px-4 py-3 rounded-2xl border
-            bg-white/70 backdrop-blur text-sm text-center
-            hover:bg-white transition"
-          >
-            Volver
-          </Link>
+        {/* Botones ahora flotantes, ver abajo */}
 
-          <button
-            onClick={handleSave}
-            disabled={alreadyDone || !selected}
-            className={`flex-1 px-4 py-3 rounded-2xl text-sm font-medium
-              transition
-              ${
-                alreadyDone || !selected
-                  ? "bg-neutral-200 text-neutral-600"
-                  : "bg-neutral-900 text-white hover:bg-neutral-800"
-              }`}
+        {/* BOTONES FLOTANTES CUANDO SE SELECCIONA */}
+        {selected && !alreadyDone && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.3 }}
+            className="fixed bottom-6 left-1/2 transform -translate-x-1/2 flex gap-3 w-full max-w-md px-6 z-40"
           >
-            Guardar selección
-          </button>
-        </div>
+            <button
+              onClick={() => setSelected(null)}
+              className="flex-1 px-4 py-3 rounded-2xl border bg-white/90 backdrop-blur
+              text-sm font-medium hover:bg-white transition text-neutral-900"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleSave}
+              className="flex-1 px-4 py-3 rounded-2xl bg-green-500 text-white
+              text-sm font-medium hover:bg-green-600 transition shadow-lg"
+            >
+              ✓ Guardar
+            </button>
+          </motion.div>
+        )}
       </motion.div>
     </main>
   );

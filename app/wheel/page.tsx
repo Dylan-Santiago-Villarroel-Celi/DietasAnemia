@@ -10,6 +10,7 @@ import { motion } from "framer-motion";
 export default function WheelPage() {
   const remaining = useWheelStore((s) => s.remaining);
   const reset = useWheelStore((s) => s.reset);
+  const name = useWheelStore((s) => s.name);
 
   const progress = useMemo(() => {
     const done = 4 - remaining.length;
@@ -44,6 +45,15 @@ export default function WheelPage() {
             priority
           />
         </motion.div>
+
+        {/* SALUDO */}
+        {name && (
+          <div className="text-center">
+            <p className="text-lg font-medium text-neutral-800">
+              ¡Hola, {name}!
+            </p>
+          </div>
+        )}
 
         {/* HEADER */}
         <div className="flex items-start justify-between gap-3">
@@ -92,7 +102,7 @@ export default function WheelPage() {
         </div>
 
         {/* TARJETA MOTIVACIONAL */}
-        {progress.done > 0 && (
+        {progress.done > 0 && !allDone && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -106,28 +116,49 @@ export default function WheelPage() {
         )}
 
         {/* CARD RULETA */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.4, delay: 0.1 }}
-          className="rounded-3xl bg-white/80 backdrop-blur border
-          shadow-md p-6 space-y-4"
-        >
-          {/* ENCABEZADO RULETA */}
-          <div className="text-center">
-            <p className="text-sm font-medium text-neutral-700">
-              Elige tu próxima categoría
+        {!allDone ? (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+            className="rounded-3xl bg-white/80 backdrop-blur border
+            shadow-md p-6 space-y-4"
+          >
+            {/* ENCABEZADO RULETA */}
+            <div className="text-center">
+              <p className="text-sm font-medium text-neutral-700">
+                Elige tu próxima categoría
+              </p>
+            </div>
+
+            <SpinWheel remaining={remaining} />
+
+            <p className="text-xs text-neutral-600 text-center pt-2">
+              🎯 Toca la ruleta o presiona <strong>Girar</strong>
+              <br />
+              No hay opciones incorrectas, ¡todas son nutritivas! 💚
             </p>
-          </div>
-
-          <SpinWheel remaining={remaining} />
-
-          <p className="text-xs text-neutral-600 text-center pt-2">
-            🎯 Toca la ruleta o presiona <strong>Girar</strong>
-            <br />
-            No hay opciones incorrectas, ¡todas son nutritivas! 💚
-          </p>
-        </motion.div>
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+            className="rounded-3xl bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200
+            shadow-md p-6 space-y-4 text-center"
+          >
+            <div className="text-4xl">🎉</div>
+            <h2 className="text-2xl font-semibold text-green-900">
+              ¡Lo hiciste!
+            </h2>
+            <p className="text-sm text-green-800">
+              Has seleccionado todos los ingredientes para tu plato personalizado.
+            </p>
+            <p className="text-sm text-green-700 font-medium">
+              Ahora descubre tu receta con hierro optimizado 🍽️
+            </p>
+          </motion.div>
+        )}
 
         {/* TARJETA DE INFORMACIÓN */}
         <motion.div

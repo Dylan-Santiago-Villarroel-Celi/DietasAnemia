@@ -68,13 +68,6 @@ export default function HomePage() {
             Comenzar
           </Link>
 
-          <Link
-            href="/tutorial"
-            className="px-6 py-3 rounded-2xl bg-white/70 backdrop-blur border
-            text-sm font-medium text-neutral-800 hover:bg-white transition"
-          >
-            Ver tutorial
-          </Link>
         </motion.div>
 
       </div>

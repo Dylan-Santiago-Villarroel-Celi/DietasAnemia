@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { toPng } from "html-to-image";
 
@@ -13,6 +14,7 @@ import { generateRecipe } from "@/lib/recipe";
 const order: CategoryId[] = ["heme", "non-heme", "enhancers", "inhibitors"];
 
 export default function ResultPage() {
+  const router = useRouter();
   const selections = useWheelStore((s) => s.selections);
   const reset = useWheelStore((s) => s.reset);
 
@@ -21,6 +23,11 @@ export default function ResultPage() {
 
   const [exporting, setExporting] = useState(false);
   const [showStory, setShowStory] = useState(false);
+
+  const handleCreateNewPlate = () => {
+    reset();
+    router.push("/wheel");
+  };
 
   const picked = useMemo(() => {
     return order
@@ -148,12 +155,6 @@ export default function ResultPage() {
             </p>
           </div>
 
-          <button
-            onClick={reset}
-            className="px-3 py-2 rounded-xl border bg-white/70 backdrop-blur text-sm"
-          >
-            Reiniciar
-          </button>
         </div>
 
         {/* BLOQUE EXPORTABLE FEED (solo receta) */}
@@ -247,12 +248,12 @@ export default function ResultPage() {
           </button>
         </div>
 
-        <Link
-          href="/wheel"
-          className="block px-4 py-3 rounded-2xl border bg-white/70 backdrop-blur text-sm text-center"
+        <button
+          onClick={handleCreateNewPlate}
+          className="block w-full px-4 py-3 rounded-2xl border bg-white/70 backdrop-blur text-sm text-center hover:bg-white transition font-medium"
         >
-          Volver a la ruleta
-        </Link>
+          Crear un nuevo plato →
+        </button>
       </motion.div>
 
       {/* OVERLAY STORY (visible solo al exportar) */}
